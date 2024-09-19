@@ -1,0 +1,41 @@
+{
+    "name": "ai-helper",
+    "version": "1.0.0",
+    "main": "src/main.js",
+    "scripts": {
+        "start": "electron .",
+        "build": "electron-builder",
+		"dist": "electron-builder --windows --mac --linux"
+
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "build": {
+        "appId": "com.junsik.ai-helper",
+        "productName": "AI-Helper",
+        "files": [
+            "src/**/*",
+            "node_modules/**/*"
+        ],
+        "win": {
+            "target": "nsis",
+            "icon": "build/icon.ico"
+        },
+        "mac": {
+            "target": "dmg",
+            "icon": "build/icon.icns"
+        },
+        "linux": {
+            "target": "AppImage",
+            "icon": "build/icon.png"
+        }
+    },
+    "devDependencies": {
+        "electron": "^32.1.1",
+        "electron-builder": "^25.0.5"
+    },
+    "dependencies": {
+        "electron-store": "^10.0.0"
+    }
+}
