@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, Rectangle } from 'electron';
+import { app, BrowserWindow, globalShortcut, Rectangle, Menu } from 'electron';
 import Store from 'electron-store';
 
 //import { createRequire } from 'node:module';
@@ -121,26 +121,40 @@ app.whenReady().then(() => {
     if (null === win) return;
 
     const webContents = win.webContents;
+    const template = [
+        {
+            label: 'File',
+            submenu: [
+                {
+                    label: 'Zoom Up',
+                    accelerator: 'CommandOrControl+=',
+                    click: () => {
+                        const currentZoom = webContents.getZoomFactor();
+                        webContents.setZoomFactor(currentZoom + 0.1);
+                        store.get('currentZoom', currentZoom + 0.1);
+                    },
+                },
+                {
+                    label: 'Zoom Down',
+                    accelerator: 'CommandOrControl+-',
+                    click: () => {
+                        const currentZoom = webContents.getZoomFactor();
+                        webContents.setZoomFactor(currentZoom - 0.1);
+                        store.get('currentZoom', currentZoom - 0.1);
+                    },
+                },
+                {
+                    label: 'Zoom Init',
+                    accelerator: 'CommandOrControl+0',
+                    click: () => {
+                        webContents.setZoomFactor(1.0);
+                        store.get('currentZoom', 1.0);
+                    },
+                },
+            ],
+        },
+    ];
 
-    globalShortcut.register('CommandOrControl+=', () => {
-        const currentZoom = webContents.getZoomFactor();
-        webContents.setZoomFactor(currentZoom + 0.1);
-        store.get('currentZoom', currentZoom + 0.1);
-    });
-
-    globalShortcut.register('CommandOrControl+-', () => {
-        const currentZoom = webContents.getZoomFactor();
-        webContents.setZoomFactor(currentZoom - 0.1);
-        store.get('currentZoom', currentZoom - 0.1);
-    });
-
-    globalShortcut.register('CommandOrControl+0', () => {
-        webContents.setZoomFactor(1.0);
-        store.get('currentZoom', 1.0);
-    });
-});
-
-app.on('will-quit', () => {
-    // 앱이 종료될 때 모든 글로벌 단축키를 해제
-    globalShortcut.unregisterAll();
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
 });
