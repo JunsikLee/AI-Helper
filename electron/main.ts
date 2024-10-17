@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, Rectangle, Menu } from 'electron';
+import { app, BrowserWindow, Rectangle, Menu } from 'electron';
 import Store from 'electron-store';
 
 //import { createRequire } from 'node:module';
