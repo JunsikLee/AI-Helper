@@ -51,6 +51,20 @@ const store = new Store<StoreType>({
 });
 
 function createWindow() {
+    app.setPath('userData', path.join(process.env.APP_ROOT, 'cache'));
+    console.log(`🌳 캐시 저장 폴더 : ${path.join(process.env.APP_ROOT, 'cache')}`);
+
+    if (!app.requestSingleInstanceLock()) {
+        app.quit(); 
+    } else {
+        app.on('second-instance', () => {
+            if (win) {
+                if (win.isMinimized()) win.restore();
+                win.focus();
+            }
+        });
+    }
+
     const windowsStatus = store.get('windowsStatus');
     win = new BrowserWindow({
         x: windowsStatus.x,
