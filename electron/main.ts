@@ -7,6 +7,7 @@ import path from 'node:path';
 
 //const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __lock = app.requestSingleInstanceLock();
 
 // The built directory structure
 //
@@ -25,6 +26,8 @@ export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron');
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST;
+
+app.setPath('userData', path.join(process.cwd(), 'cache'));
 
 let win: BrowserWindow | null;
 
@@ -51,15 +54,16 @@ const store = new Store<StoreType>({
 });
 
 function createWindow() {
-    app.setPath('userData', path.join(process.env.APP_ROOT, 'cache'));
-    console.log(`🌳 캐시 저장 폴더 : ${path.join(process.env.APP_ROOT, 'cache')}`);
+    console.log(`🌳 캐시 저장 폴더 : ${path.join(process.cwd(), 'cache')}`);
 
-    if (!app.requestSingleInstanceLock()) {
-        app.quit(); 
+    if (!__lock) {
+        app.quit();
     } else {
         app.on('second-instance', () => {
             if (win) {
-                if (win.isMinimized()) win.restore();
+                if (win.isMinimized() || !win.isVisible()) {
+                    win.show();
+                }
                 win.focus();
             }
         });
@@ -75,12 +79,13 @@ function createWindow() {
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.mjs'),
+            webviewTag: true,
+            devTools: true,
         },
     });
 
-    win.loadURL('https://chatgpt.com/');
+    //win.loadURL('https://chatgpt.com/');
 
-    /*
     // Test active push message to Renderer-process.
     win.webContents.on('did-finish-load', () => {
         win?.webContents.send('main-process-message', new Date().toLocaleString());
@@ -92,7 +97,6 @@ function createWindow() {
         // win.loadFile('dist/index.html')
         win.loadFile(path.join(RENDERER_DIST, 'index.html'));
     }
-    */
 
     const currentZoom = store.get('currentZoom');
     win.webContents.setZoomFactor(currentZoom);
@@ -163,6 +167,39 @@ app.whenReady().then(() => {
                     click: () => {
                         webContents.setZoomFactor(1.0);
                         store.get('currentZoom', 1.0);
+                    },
+                },
+                {
+                    label: 'TOOL1',
+                    accelerator: 'CommandOrControl+1',
+                    click: () => {
+                        //win && win.loadURL('https://chatgpt.com/');
+                        if (VITE_DEV_SERVER_URL) {
+                            win && win.loadURL(VITE_DEV_SERVER_URL + '#/');
+                        } else {
+                            // win.loadFile('dist/index.html')
+                            win && win.loadFile(path.join(RENDERER_DIST, 'index.html') + +'#/');
+                        }
+                    },
+                },
+                {
+                    label: 'TOOL2',
+                    accelerator: 'CommandOrControl+2',
+                    click: () => {
+                        //win && win.loadURL('https://www.perplexity.ai/');
+                        if (VITE_DEV_SERVER_URL) {
+                            win && win.loadURL(VITE_DEV_SERVER_URL + '#/about');
+                        } else {
+                            // win.loadFile('dist/index.html')
+                            win && win.loadFile(path.join(RENDERER_DIST, 'index.html') + +'#/about');
+                        }
+                    },
+                },
+                {
+                    label: 'DEV',
+                    accelerator: 'F12',
+                    click: () => {
+                        win && win.webContents.openDevTools();
                     },
                 },
             ],
