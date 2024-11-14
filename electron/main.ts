@@ -27,7 +27,8 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST;
 
-app.setPath('userData', path.join(process.cwd(), 'cache'));
+//캐시 폴더 설정
+app.setPath('userData', path.join(app.getPath('home'), '.ai-helper', 'cache'));
 
 let win: BrowserWindow | null;
 
