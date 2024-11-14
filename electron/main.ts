@@ -7,6 +7,7 @@ import path from 'node:path';
 
 //const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __lock = app.requestSingleInstanceLock();
 
 // The built directory structure
 //
@@ -26,6 +27,8 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST;
 
+app.setPath('userData', path.join(process.cwd(), 'cache'));
+
 let win: BrowserWindow | null;
 
 type StoreType = {
@@ -36,6 +39,7 @@ type StoreType = {
         height: number;
     };
     currentZoom: number;
+    mode: number;
 };
 
 const store = new Store<StoreType>({
@@ -47,19 +51,21 @@ const store = new Store<StoreType>({
             height: 1200,
         },
         currentZoom: 1.0,
+        mode: 1,
     },
 });
 
 function createWindow() {
-    app.setPath('userData', path.join(process.env.APP_ROOT, 'cache'));
-    console.log(`🌳 캐시 저장 폴더 : ${path.join(process.env.APP_ROOT, 'cache')}`);
+    console.log(`🌳 캐시 저장 폴더 : ${path.join(process.cwd(), 'cache')}`);
 
-    if (!app.requestSingleInstanceLock()) {
-        app.quit(); 
+    if (!__lock) {
+        app.quit();
     } else {
         app.on('second-instance', () => {
             if (win) {
-                if (win.isMinimized()) win.restore();
+                if (win.isMinimized() || !win.isVisible()) {
+                    win.show();
+                }
                 win.focus();
             }
         });
@@ -75,24 +81,41 @@ function createWindow() {
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.mjs'),
+            webviewTag: true,
+            devTools: true,
         },
     });
 
-    win.loadURL('https://chatgpt.com/');
-
-    /*
     // Test active push message to Renderer-process.
     win.webContents.on('did-finish-load', () => {
         win?.webContents.send('main-process-message', new Date().toLocaleString());
     });
 
+    const mode = store.get('mode');
+    if (mode === 1) {
+        if (VITE_DEV_SERVER_URL) {
+            win && win.loadURL(VITE_DEV_SERVER_URL + '#/single');
+        } else {
+            // win.loadFile('dist/index.html')
+            win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/single`);
+        }
+    } else {
+        if (VITE_DEV_SERVER_URL) {
+            win && win.loadURL(VITE_DEV_SERVER_URL + '#/mutil');
+        } else {
+            // win.loadFile('dist/index.html')
+            win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/mutil`);
+        }
+    }
+
+    /*
     if (VITE_DEV_SERVER_URL) {
         win.loadURL(VITE_DEV_SERVER_URL);
     } else {
         // win.loadFile('dist/index.html')
         win.loadFile(path.join(RENDERER_DIST, 'index.html'));
     }
-    */
+        */
 
     const currentZoom = store.get('currentZoom');
     win.webContents.setZoomFactor(currentZoom);
@@ -163,6 +186,39 @@ app.whenReady().then(() => {
                     click: () => {
                         webContents.setZoomFactor(1.0);
                         store.get('currentZoom', 1.0);
+                    },
+                },
+                {
+                    label: 'Single View',
+                    accelerator: 'CommandOrControl+1',
+                    click: () => {
+                        if (VITE_DEV_SERVER_URL) {
+                            win && win.loadURL(VITE_DEV_SERVER_URL + '#/single');
+                        } else {
+                            // win.loadFile('dist/index.html')
+                            win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/single`);
+                        }
+                        store.get('mode', 1);
+                    },
+                },
+                {
+                    label: 'Mutil View',
+                    accelerator: 'CommandOrControl+2',
+                    click: () => {
+                        if (VITE_DEV_SERVER_URL) {
+                            win && win.loadURL(VITE_DEV_SERVER_URL + '#/mutil');
+                        } else {
+                            // win.loadFile('dist/index.html')
+                            win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/mutil`);
+                        }
+                        store.get('mode', 2);
+                    },
+                },
+                {
+                    label: 'DEV',
+                    accelerator: 'F12',
+                    click: () => {
+                        win && win.webContents.openDevTools();
                     },
                 },
             ],
