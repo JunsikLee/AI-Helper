@@ -39,6 +39,7 @@ type StoreType = {
         height: number;
     };
     currentZoom: number;
+    mode: number;
 };
 
 const store = new Store<StoreType>({
@@ -50,6 +51,7 @@ const store = new Store<StoreType>({
             height: 1200,
         },
         currentZoom: 1.0,
+        mode: 1,
     },
 });
 
@@ -84,19 +86,36 @@ function createWindow() {
         },
     });
 
-    //win.loadURL('https://chatgpt.com/');
-
     // Test active push message to Renderer-process.
     win.webContents.on('did-finish-load', () => {
         win?.webContents.send('main-process-message', new Date().toLocaleString());
     });
 
+    const mode = store.get('mode');
+    if (mode === 1) {
+        if (VITE_DEV_SERVER_URL) {
+            win && win.loadURL(VITE_DEV_SERVER_URL + '#/single');
+        } else {
+            // win.loadFile('dist/index.html')
+            win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/single`);
+        }
+    } else {
+        if (VITE_DEV_SERVER_URL) {
+            win && win.loadURL(VITE_DEV_SERVER_URL + '#/mutil');
+        } else {
+            // win.loadFile('dist/index.html')
+            win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/mutil`);
+        }
+    }
+
+    /*
     if (VITE_DEV_SERVER_URL) {
         win.loadURL(VITE_DEV_SERVER_URL);
     } else {
         // win.loadFile('dist/index.html')
         win.loadFile(path.join(RENDERER_DIST, 'index.html'));
     }
+        */
 
     const currentZoom = store.get('currentZoom');
     win.webContents.setZoomFactor(currentZoom);
@@ -170,29 +189,29 @@ app.whenReady().then(() => {
                     },
                 },
                 {
-                    label: 'TOOL1',
+                    label: 'Single View',
                     accelerator: 'CommandOrControl+1',
                     click: () => {
-                        //win && win.loadURL('https://chatgpt.com/');
                         if (VITE_DEV_SERVER_URL) {
-                            win && win.loadURL(VITE_DEV_SERVER_URL + '#/');
+                            win && win.loadURL(VITE_DEV_SERVER_URL + '#/single');
                         } else {
                             // win.loadFile('dist/index.html')
-                            win && win.loadFile(path.join(RENDERER_DIST, 'index.html') + +'#/');
+                            win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/single`);
                         }
+                        store.get('mode', 1);
                     },
                 },
                 {
-                    label: 'TOOL2',
+                    label: 'Mutil View',
                     accelerator: 'CommandOrControl+2',
                     click: () => {
-                        //win && win.loadURL('https://www.perplexity.ai/');
                         if (VITE_DEV_SERVER_URL) {
-                            win && win.loadURL(VITE_DEV_SERVER_URL + '#/about');
+                            win && win.loadURL(VITE_DEV_SERVER_URL + '#/mutil');
                         } else {
                             // win.loadFile('dist/index.html')
-                            win && win.loadFile(path.join(RENDERER_DIST, 'index.html') + +'#/about');
+                            win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/mutil`);
                         }
+                        store.get('mode', 2);
                     },
                 },
                 {
