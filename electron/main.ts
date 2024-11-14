@@ -117,7 +117,7 @@ function createWindow() {
     }
         */
 
-    const currentZoom = store.get('currentZoom');
+    const currentZoom = store.get('currentZoom', 1);
     win.webContents.setZoomFactor(currentZoom);
 
     win.on('close', () => {
@@ -177,7 +177,7 @@ app.whenReady().then(() => {
                     click: () => {
                         const currentZoom = webContents.getZoomFactor();
                         webContents.setZoomFactor(currentZoom - 0.1);
-                        store.get('currentZoom', currentZoom - 0.1);
+                        store.set('currentZoom', currentZoom - 0.1);
                     },
                 },
                 {
@@ -185,7 +185,7 @@ app.whenReady().then(() => {
                     accelerator: 'CommandOrControl+0',
                     click: () => {
                         webContents.setZoomFactor(1.0);
-                        store.get('currentZoom', 1.0);
+                        store.set('currentZoom', 1.0);
                     },
                 },
                 {
@@ -198,7 +198,7 @@ app.whenReady().then(() => {
                             // win.loadFile('dist/index.html')
                             win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/single`);
                         }
-                        store.get('mode', 1);
+                        store.set('mode', 1);
                     },
                 },
                 {
@@ -211,7 +211,7 @@ app.whenReady().then(() => {
                             // win.loadFile('dist/index.html')
                             win && win.loadURL(`file://${path.join(RENDERER_DIST, 'index.html')}#/mutil`);
                         }
-                        store.get('mode', 2);
+                        store.set('mode', 2);
                     },
                 },
                 {
