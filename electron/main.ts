@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Rectangle, Menu } from 'electron';
+import { app, BrowserWindow, Rectangle, Menu, MenuItemConstructorOptions } from 'electron';
 import Store from 'electron-store';
 
 //import { createRequire } from 'node:module';
@@ -159,7 +159,7 @@ app.whenReady().then(() => {
     if (null === win) return;
 
     const webContents = win.webContents;
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
         {
             label: 'File',
             submenu: [
@@ -222,6 +222,18 @@ app.whenReady().then(() => {
                         win && win.webContents.openDevTools();
                     },
                 },
+            ],
+        },
+        {
+            label: 'Edit',
+            submenu: [
+                { role: 'undo' }, // 실행 취소
+                { role: 'redo' }, // 다시 실행
+                { type: 'separator' },
+                { role: 'cut' }, // 잘라내기
+                { role: 'copy' }, // 복사
+                { role: 'paste' }, // 붙여넣기
+                { role: 'selectAll' }, // 전체 선택
             ],
         },
     ];
